@@ -74,30 +74,29 @@ export class JwtInterceptor implements HttpInterceptor {
     request: HttpRequest<any>,
     next: HttpHandler
   ) {
-    if(!this.isBlacklistedRoute(request))
-    {
-    let tokenIsExpired: boolean = false;
+    if (!this.isBlacklistedRoute(request)) {
+      let tokenIsExpired: boolean = false;
 
-    if (!token && this.throwNoTokenError) {
-      throw new Error('Could not get token from tokenGetter function.');
-    }
+      if (!token && this.throwNoTokenError) {
+        throw new Error('Could not get token from tokenGetter function.');
+      }
 
-    if (this.skipWhenExpired) {
-      tokenIsExpired = token ? this.jwtHelper.isTokenExpired(token) : true;
-    }
+      if (this.skipWhenExpired) {
+        tokenIsExpired = token ? this.jwtHelper.isTokenExpired(token) : true;
+      }
 
-    if (token && tokenIsExpired && this.skipWhenExpired) {
-      request = request.clone();
-    } else if (
-      token &&
-      this.isWhitelistedDomain(request)
-    ) {
-      request = request.clone({
-        setHeaders: {
-          [this.headerName]: `${this.authScheme}${token}`
-        }
-      });
-    }
+      if (token && tokenIsExpired && this.skipWhenExpired) {
+        request = request.clone();
+      } else if (
+        token &&
+        this.isWhitelistedDomain(request)
+      ) {
+        request = request.clone({
+          setHeaders: {
+            [this.headerName]: `${this.authScheme}${token}`
+          }
+        });
+      }
     }
     else request.clone();
     return next.handle(request);
@@ -107,11 +106,13 @@ export class JwtInterceptor implements HttpInterceptor {
     request: HttpRequest<any>,
     next: HttpHandler
   ): Observable<HttpEvent<any>> {
-    if(!this.isBlacklistedRoute(request))
-    {
-      const token = this.tokenGetter();
+    var token;
+    if (!this.isBlacklistedRoute(request)) {
+      token = this.tokenGetter();
     }
-    else token =null;
+    else {
+      token = null;
+    }
 
     if (token instanceof Promise) {
       return from(token).pipe(mergeMap(
