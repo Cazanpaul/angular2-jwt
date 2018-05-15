@@ -74,6 +74,8 @@ export class JwtInterceptor implements HttpInterceptor {
     request: HttpRequest<any>,
     next: HttpHandler
   ) {
+    if(!this.isBlacklistedRoute(request))
+    {
     let tokenIsExpired: boolean = false;
 
     if (!token && this.throwNoTokenError) {
@@ -88,8 +90,7 @@ export class JwtInterceptor implements HttpInterceptor {
       request = request.clone();
     } else if (
       token &&
-      this.isWhitelistedDomain(request) &&
-      !this.isBlacklistedRoute(request)
+      this.isWhitelistedDomain(request)
     ) {
       request = request.clone({
         setHeaders: {
@@ -97,6 +98,8 @@ export class JwtInterceptor implements HttpInterceptor {
         }
       });
     }
+    }
+    else request.clone();
     return next.handle(request);
   }
 
@@ -104,7 +107,11 @@ export class JwtInterceptor implements HttpInterceptor {
     request: HttpRequest<any>,
     next: HttpHandler
   ): Observable<HttpEvent<any>> {
-    const token = this.tokenGetter();
+    if(!this.isBlacklistedRoute(request))
+    {
+      const token = this.tokenGetter();
+    }
+    else token =null;
 
     if (token instanceof Promise) {
       return from(token).pipe(mergeMap(
